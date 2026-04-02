@@ -81,6 +81,10 @@ class ControllerService(project2_pb2_grpc.ControllerServiceServicer):
             new_node_num = self.next_node_num
             self.next_node_num += 1
             threading.Thread(target=self._run_split, args=(target, new_node_num)).start()
+        
+        # Controller blocks additional Put requests until forked thread completes repartitioning
+        while self.repartitioning == True:
+            pass
 
         return PutResponse(
             ok=response.ok,
