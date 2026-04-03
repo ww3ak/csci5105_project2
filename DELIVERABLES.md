@@ -1,37 +1,33 @@
 # Deliverable A: Accuracy vs. Vectors Searched when Varying Repartitioning Threshold
 
-The following test results demonstrate how query response accuracy/efficiency is affected by different repartitioning threshold values.
-Note that the below test evaluates all 200 questions at once
-Some notes on the table below:
+The following test results demonstrate how query response accuracy/efficiency is affected by different repartitioning threshold values. score_all_questions.py was used to obtain the values in the table below by averaging the results after providing the system 200 queries.
+
+**Explanation of table fields:**
+
 - "Average vectors searched"
-    - Average searched vectors per question
-    - TODO: EXPLAIN MORE
+    - Describes the average number of vectors in the chosen storage node searched per query to find the top k local hits best matching the query embedding 
 - "Average search fraction"
-    - Vectors searched / Total vectors in corpus 
-    TODO: EXPLAIN MORE
-- "Average hit rate"
-    - Each sample query in questions_scored.jsonl has an "oracle top-5" list, which stores the true 5 most similar stored embeddings to the query embedding
-    - When presenting the system with a query, the searched storage node is selected based on the similarity of its centroid to the query embedding
-    - The selected embeddings from the searched storage node are referred to as "hits"
-    - Each embedding has an ID  
-    - The hit rate is defined as len(expected_ids & actual_ids) / len(expected_ids), where expected_ids refers to the oracle top 5
-    - This acts as a measure of accuracy of how similar the system's returned records are to the oracle records stored in the scored question file
+    - (Average vectors searched) / (Total vectors in corpus)
+    - This number is a measure of how efficiently the system finds the k local best hits
 - "Average returned score"
-    - Every individual stored record has a "score." This score is the cosine similarity between its embedding and the query's embedding
-    - When the system is presented a query, it retrieves the top k records (hits) most similar to the query in the selected storage node
-    - This field refers to the overall score of the system's hits averaged across ALL questions
+    - Every stored record has a "score," which is the cosine similarity between its embedding and the query's embedding
+    - This field refers to the overall score of the system's hits averaged across all 200 questions
 - "Average oracle score"
-    - The top 5 oracle records (the 5 actual most similar records to the query) stored in the questions_scored.jsonl file also have a score
-    - This field refers to the score of all the oracle records stored in the scored question file averaged across ALL questions
+    - Each item in the top 5 oracle list stored in the questions_scored.jsonl file also has a score
+    - This field refers to the overall score of all oracle records averaged across all 200 questions
 - "Average score accuracy"
     - Defined as (Average returned score) / (Average oracle score)
-    - The output of the above calculation is a number between 0 and 1, and is a measure of accuracy of the records that the system retrieved when presented with queries
-    - The closer the value is to 1, the more 
+    - This number is a measure of hit accuracy (the closer it is to 1, the more similar the system's hits are to the oracle list contents) 
+- "Average hit rate"
+    - Each sample query in questions_scored.jsonl has an "oracle top-5" list, which stores the true 5 most similar stored embeddings to the query embedding
+    - When presented with a query, the system searches extracts "hits" from the storage node with a centroid most closely matching the query embedding
+    - The hit rate is defined as (Number of hits that are in the oracle list) / (Length of oracle list)
+    - This acts as a measure of hit accuracy
 - "Overall score"
     - Defined as (Average score accuracy) / (Average search fraction)
-    - Therefore this number represents an overall measure of performance, accounting for both the accuracy of the system's returned records and the number of vectors searched to obtain those records
-    - The higher this number, the better the overall quality
+    - This is a measure of both the accuracy of the system's hits and efficiency at which it retrieved those hits
 
+**Results:**
 
 | Repartition Threshold | Average vectors searched  | Average search fraction   | Average returned score    | Average oracle score  | Average score accuracy    | Average hit rate  | Overall score |
 |-----------------------|---------------------------|---------------------------|---------------------------|-----------------------|---------------------------|-------------------|---------------|
@@ -43,10 +39,15 @@ Some notes on the table below:
 | 100                   | 64.14                     | 0.0486                    | 0.5290                    | 0.5812                | 0.9079                    | 0.4808            | 20.5383       |
 
 
+**Analysis:**
 
-Analysis:
+The table above shows that as the repartition threshold decreases, the following trends hold: 
 
-TODO
+- The search's content quality decreases (lower average score accuracy and average hit rate)
+- The search's computational efficiency increases (lower average vectors searched and average search fraction)
+- In general, the computational efficiency increases faster than the content quality decreases, leading to an increasing overall score
+
+These results match our expectations. A smaller repartition threshold means a smaller number of vectors searched within the chosen storage node. However, because the partitions now hold fewer vectors, the centriod (the average of the embeddings stored at the node) is less stable and more prone to noise, which decreases routing quality and therefore decreases the returned content quality during a query.  
 
 
 
