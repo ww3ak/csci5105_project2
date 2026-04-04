@@ -86,9 +86,13 @@ In the baseline system, a query is always routed to a single node. This keeps th
 
 
 ### New Complexities
-This approach introduces some additional complexity for the controller. The controller must compare centroid similarities more carefully and decide whether to route the query to one node or multiple nodes. In cases where multiple nodes are searched, the controller has to send multiple ```SearchLocal``` requests and merge the returned results before selecting the final global top-k matches.
+This approach introduces some additional complexity for the controller. The controller must compare centroid similarities more carefully and decide whether a query should be routed to one node or multiple nodes. When multiple nodes are searched, the controller must send several ```SearchLocal``` requests and merge the returned results before selecting the final top-k matches. This increases the amount of coordination the controller performs compared to the baseline system.
 
-The additional calculation and messages may slightly increase network traffic and the number of vectors searched for some queries. However, since additional nodes are only searched when necessary, the overhead remains similar to the baseline systems repartitioning scheme and overall is relatively small compared to searching the entire corpus.
+There is also additional networking overhead, since multiple gRPC calls may be issued for a single query instead of just one. This can slightly increase latency and network traffic.
+
+Another tradeoff is that more vectors may be searched in cases where a query is routed to multiple nodes. While this still searches far fewer vectors than scanning the entire corpus, it does increase the search cost compared to routing to only one node.
+
+However, the goal of this approach is to balance these costs with improved search quality. Instead of always searching many nodes or performing a full search over all vectors, the system only expands the search when centroid similarities suggest that a query may lie near a partition boundary. This helps limit unnecessary work while still improving the chances of returning the most relevant results.
 
 # Deliverable D: Extend Evaluation Beyond Sample Script
 
