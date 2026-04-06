@@ -1,0 +1,10 @@
+Step 1: ingesting full corpus
+ingested 250 records (last target=storage-node-2:50051, split_triggered=False)
+ingested 500 records (last target=storage-node-2:50051, split_triggered=False)
+ingested 750 records (last target=storage-node-3:50051, split_triggered=False)
+ingested 1000 records (last target=storage-node-2:50051, split_triggered=False)
+ingested 1250 records (last target=storage-node-3:50051, split_triggered=False)
+Finished ingesting 1321 total records.
+
+Step 2: loading all scored questions
+Step 3: evaluating all questions
