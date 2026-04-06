@@ -9,7 +9,7 @@ from utils.utils import choose_closest_node, create_storage_node, cosine_similar
 # Import cosine_similarity for extra credit emplemtnation of multi node repartitioning
 
 
-MAX_VECTORS_PER_NODE = 1000
+MAX_VECTORS_PER_NODE = 600
 
 # Threshold added for extra credit implementation of multi node repartitioning 
 # Controls when a query is considered "near a boundary."
@@ -97,91 +97,91 @@ class ControllerService(project2_pb2_grpc.ControllerServiceServicer):
             split_triggered=split_triggered,
         )
 
-    # def Search(
-    #     self, request: SearchRequest, context: grpc.ServicerContext
-    # ) -> SearchLocalResponse:
-    #     # TODO:
-    #     # Implement the controller-side Search path.
-    #     #
-    #     # High-level steps:
-    #     # 1. Convert the incoming embedding into a plain Python list:
-    #     query_embedding = list(request.embedding)
-    #     # 2. Choose the closest node by calling:
-    #     closest_node = choose_closest_node(self.nodes, query_embedding)
-    #     # need target for stub chanel
-    #     target = closest_node["target"]
-    #     # 3. Forward the search to that node with:
-    #     #       StorageNodeServiceStub(...).SearchLocal(
-    #     #           SearchLocalRequest(query_embedding=query_embedding, top_k=5)
-    #     #       )
-    #     with grpc.insecure_channel(target) as channel:
-    #         stub = project2_pb2_grpc.StorageNodeServiceStub(channel)
-    #         response = stub.SearchLocal(SearchLocalRequest(query_embedding=query_embedding, top_k=5))
-    #     # 4. Return the SearchLocalResponse from that node.
-    #     #
-    #     # Note:
-    #     # The proto returns SearchLocalResponse here, so you can directly return
-    #     # the storage node's SearchLocal response object.
-    #     return response
-    
-    # Extra credit implementation of a multi node repartitioning scheme
-    # Uncomment to test!
-    def Search(        
-            self, request: SearchRequest, context: grpc.ServicerContext
+    def Search(
+        self, request: SearchRequest, context: grpc.ServicerContext
     ) -> SearchLocalResponse:
+        # TODO:
+        # Implement the controller-side Search path.
+        #
+        # High-level steps:
+        # 1. Convert the incoming embedding into a plain Python list:
         query_embedding = list(request.embedding)
+        # 2. Choose the closest node by calling:
+        closest_node = choose_closest_node(self.nodes, query_embedding)
+        # need target for stub chanel
+        target = closest_node["target"]
+        # 3. Forward the search to that node with:
+        #       StorageNodeServiceStub(...).SearchLocal(
+        #           SearchLocalRequest(query_embedding=query_embedding, top_k=5)
+        #       )
+        with grpc.insecure_channel(target) as channel:
+            stub = project2_pb2_grpc.StorageNodeServiceStub(channel)
+            response = stub.SearchLocal(SearchLocalRequest(query_embedding=query_embedding, top_k=5))
+        # 4. Return the SearchLocalResponse from that node.
+        #
+        # Note:
+        # The proto returns SearchLocalResponse here, so you can directly return
+        # the storage node's SearchLocal response object.
+        return response
+    
+    # # Extra credit implementation of a multi node repartitioning scheme
+    # # Uncomment to test!
+    # def Search(        
+    #         self, request: SearchRequest, context: grpc.ServicerContext
+    # ) -> SearchLocalResponse:
+    #     query_embedding = list(request.embedding)
 
-        # First score all nodes by centroid similariy
-        nodes_scores = []
-        for node in self.nodes:
-            if node["centroid"]:
-                score = cosine_similarity(query_embedding, list(node["centroid"]))
-                nodes_scores.append((node, score))
+    #     # First score all nodes by centroid similariy
+    #     nodes_scores = []
+    #     for node in self.nodes:
+    #         if node["centroid"]:
+    #             score = cosine_similarity(query_embedding, list(node["centroid"]))
+    #             nodes_scores.append((node, score))
 
-        # Fall back to do single node routing if only one node or no centroids
-        if len(nodes_scores) < 2:
-            if nodes_scores:
-                target = nodes_scores[0][0]["target"]
-            else:
-                target = self.nodes[0]["target"]
+    #     # Fall back to do single node routing if only one node or no centroids
+    #     if len(nodes_scores) < 2:
+    #         if nodes_scores:
+    #             target = nodes_scores[0][0]["target"]
+    #         else:
+    #             target = self.nodes[0]["target"]
 
-            with grpc.insecure_channel(target) as channel:
-                stub = project2_pb2_grpc.StorageNodeServiceStub(channel)
-                return stub.SearchLocal(SearchLocalRequest(query_embedding=query_embedding, top_k=5))
+    #         with grpc.insecure_channel(target) as channel:
+    #             stub = project2_pb2_grpc.StorageNodeServiceStub(channel)
+    #             return stub.SearchLocal(SearchLocalRequest(query_embedding=query_embedding, top_k=5))
 
-        # Sort descending by similarity score
-        nodes_scores.sort(key=lambda x: x[1], reverse=True)
-        best_node, best_score = nodes_scores[0]
-        second_node, second_score = nodes_scores[1]
-        gap = best_score - second_score
+    #     # Sort descending by similarity score
+    #     nodes_scores.sort(key=lambda x: x[1], reverse=True)
+    #     best_node, best_score = nodes_scores[0]
+    #     second_node, second_score = nodes_scores[1]
+    #     gap = best_score - second_score
 
-        print(f"[DEBUG] Best score: {best_score:.4f}, Second score: {second_score:.4f}, Gap: {gap:.4f}, Threshold: {SIMILARITY_GAP_THRESHOLD}")
+    #     print(f"[DEBUG] Best score: {best_score:.4f}, Second score: {second_score:.4f}, Gap: {gap:.4f}, Threshold: {SIMILARITY_GAP_THRESHOLD}")
 
-        if gap > SIMILARITY_GAP_THRESHOLD:
-            # Query clearly within partition -> single node routing
-            print(f"[DEBUG] SINGLE-NODE routing to {best_node['target']} (gap {gap:.4f} > threshold {SIMILARITY_GAP_THRESHOLD})")
-            with grpc.insecure_channel(best_node["target"]) as channel:
-                stub = project2_pb2_grpc.StorageNodeServiceStub(channel)
-                return stub.SearchLocal(SearchLocalRequest(query_embedding=query_embedding, top_k=5))
-        else:
-            # multi node! -> check top nodes and merge
-            print(f"[DEBUG] MULTI-NODE routing to {best_node['target']} + {second_node['target']} (gap {gap:.4f} <= threshold {SIMILARITY_GAP_THRESHOLD})")
-            results = []
-            total_vectors_searched = 0
+    #     if gap > SIMILARITY_GAP_THRESHOLD:
+    #         # Query clearly within partition -> single node routing
+    #         print(f"[DEBUG] SINGLE-NODE routing to {best_node['target']} (gap {gap:.4f} > threshold {SIMILARITY_GAP_THRESHOLD})")
+    #         with grpc.insecure_channel(best_node["target"]) as channel:
+    #             stub = project2_pb2_grpc.StorageNodeServiceStub(channel)
+    #             return stub.SearchLocal(SearchLocalRequest(query_embedding=query_embedding, top_k=5))
+    #     else:
+    #         # multi node! -> check top nodes and merge
+    #         print(f"[DEBUG] MULTI-NODE routing to {best_node['target']} + {second_node['target']} (gap {gap:.4f} <= threshold {SIMILARITY_GAP_THRESHOLD})")
+    #         results = []
+    #         total_vectors_searched = 0
 
-            for node, _ in [nodes_scores[0], nodes_scores[1]]:
-                with grpc.insecure_channel(node["target"]) as channel:
-                    stub = project2_pb2_grpc.StorageNodeServiceStub(channel)
-                    response = stub.SearchLocal(SearchLocalRequest(query_embedding=query_embedding, top_k=5))
-                results.extend(response.hits)
-                total_vectors_searched += response.vectors_searched
+    #         for node, _ in [nodes_scores[0], nodes_scores[1]]:
+    #             with grpc.insecure_channel(node["target"]) as channel:
+    #                 stub = project2_pb2_grpc.StorageNodeServiceStub(channel)
+    #                 response = stub.SearchLocal(SearchLocalRequest(query_embedding=query_embedding, top_k=5))
+    #             results.extend(response.hits)
+    #             total_vectors_searched += response.vectors_searched
 
-            # Merge and return global top-5
-            merged = sorted(results, key=lambda h: h.score, reverse=True)[:5]
-            return SearchLocalResponse(
-                hits=merged,
-                target=f"{best_node['target']}+{second_node['target']}",
-                vectors_searched=total_vectors_searched,)
+    #         # Merge and return global top-5
+    #         merged = sorted(results, key=lambda h: h.score, reverse=True)[:5]
+    #         return SearchLocalResponse(
+    #             hits=merged,
+    #             target=f"{best_node['target']}+{second_node['target']}",
+    #             vectors_searched=total_vectors_searched,)
 
 
     def ClusterStatus(

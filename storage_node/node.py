@@ -30,25 +30,17 @@ class StorageNodeService(project2_pb2_grpc.StorageNodeServiceServicer):
     ) -> StoreRecordResponse:
         # TODO:
         # Implement the local storage-node Put logic.
-        #
-        # High-level steps:
-        # 1. Append request.record to self.records.
-        # 2. Recompute the centroid for this node by calling:
-        #       update_centroid(self.records)
-        # 3. Return a StoreRecordResponse containing:
-        #       - ok=True
-        #       - target=NODE_TARGET
-        #       - centroid=Centroid(values=self.centroid)
-        #       - count=len(self.records)
-        #
-        # Default placeholder return below lets the project run before you implement this.
 
         # 1. Append request.record to self.records.
         self.records.append(request.record)
         
         # 2. Recompute the centroid for this node by calling:update_centroid(self.records)
         self.centroid = update_centroid(self.records)
-        # 3. Return a StoreRecordResponse
+        # 3. Return a StoreRecordResponse containing:
+        #       - ok=True
+        #       - target=NODE_TARGET
+        #       - centroid=Centroid(values=self.centroid)
+        #       - count=len(self.records)
         return StoreRecordResponse(
             ok=True,
             target=NODE_TARGET,
@@ -116,8 +108,6 @@ class StorageNodeService(project2_pb2_grpc.StorageNodeServiceServicer):
         #       - new_target = request.new_node_target
         #       - new_centroid = move centroid
         #       - new_count = len(move_records)
-        #
-        # Default placeholder return below lets the project run before you implement this.
         return SplitPartitionResponse(
             ok=True,
             old_target=NODE_TARGET,

@@ -2,7 +2,7 @@
 
 The following test results demonstrate how query response accuracy/efficiency is affected by different repartitioning threshold values. score_all_questions.py was used to obtain the values in the table below by averaging the results after providing the system 200 queries.
 
-**Explanation of table fields:**
+### Explanation of table fields
 
 - "Average vectors searched"
     - Describes the average number of vectors in the chosen storage node searched per query to find the top k local hits best matching the query embedding 
@@ -27,7 +27,7 @@ The following test results demonstrate how query response accuracy/efficiency is
     - Defined as (Average score accuracy) / (Average search fraction)
     - This is a measure of both the accuracy of the system's hits and efficiency at which it retrieved those hits
 
-**Results:**
+### Results
 
 | Repartition Threshold | Average vectors searched  | Average search fraction   | Average returned score    | Average oracle score  | Average score accuracy    | Average hit rate  | Overall score |
 |-----------------------|---------------------------|---------------------------|---------------------------|-----------------------|---------------------------|-------------------|---------------|
@@ -39,7 +39,7 @@ The following test results demonstrate how query response accuracy/efficiency is
 | 100                   | 64.14                     | 0.0486                    | 0.5290                    | 0.5812                | 0.9079                    | 0.4808            | 20.5383       |
 
 
-**Analysis:**
+### Analysis
 
 The table above shows that as the repartition threshold decreases, the following trends hold: 
 
@@ -53,7 +53,41 @@ These results match our expectations. A smaller repartition threshold means a sm
 
 # Deliverable B: Insertion Order
 
-TODO
+### Testing Setup
+
+- Before testing, the second occurences of all duplicate records were removed form full_corups_shuffled.json
+- We present a new, reordered corpus called full_corpus_grouped.jsonl, which groups by record type (e.g. paper, lecture slide, transcript, textbook)
+- We present a modified script called evaluate_insertion_order.py, which reports both all question scoring and partition layout
+- Note that that a constant repartitioning threshold of 600 was used for the following testing
+
+### Results
+
+| Ingestion File Used           | Storage node sizes    | Storage node mean scores  | Average vectors searched  | Average search fraction   | Average score accuracy    | Average hit rate  | Overall score |
+|-------------------------------|-----------------------|---------------------------|---------------------------|---------------------------|---------------------------|-------------------|---------------|
+| full_corpus_shuffled.jsonl    | 422, 282, 309, 302    | 0.481, 0.547, 0.531, 0.586| 476.72                    | 0.3625                    | 0.9748                    | 0.8100            | 3.0922        |
+| full_corpus_grouped.jsonl     | 591, 439, 285         | 0.494, 0.547, 0.506       | 589.11                    | 0.4480                    | 0.9866                    | 0.8815            | 2.5574        |
+
+
+### Analysis
+
+- Question #1: Does the final partition layout change?
+    - Yes, the results demonstate that the partition layout varies significantly depending on the ingestion order
+    - Above, full_corpus_shuffled.jsonl produced 4 storage nodes, which store 422, 282, 309, and 302 vectors, respectively
+    - Conversely, full_corpus_grouped.jsonl produced 3 storage nodes, which store 591, 439, and 285 vectors, respectively
+- Question #2: Does the average number of vectors searched change?
+    - Yes, the results demonstrate that the average number of vectors searched can change depending on the ingestion order
+    - In this case, it changes by a large amount (difference of over 100) because the number of storage nodes partitioned is different betwene the trials 
+- Question #3: Does the returned search quality change?
+    - Yes, the results demonstrate that both the average score accuracy ((Average returned score) / (Average oracle score)) and average hit rate changes depending on the ingestion order
+- Question #4: Why do these differences happen?
+    - Consider a system which has several storage nodes at some point midway through ingestion
+    - The set of records ingested prior to this point (set A) entirely determined the early establishment of each node's centroid values, which affects all subsequent routing
+    - Consider if a different set of records (set B) were ingested first instead
+    - The early establishment of each node's centroid values could be drastically different than that of case A
+    - Therefore, all subsequently rounting of case B will be different from case A
+    - Therefore, the timing of repartitioning in case B will also be different from case A
+    - Overall, different ingestion orders produce different incremental centroid values, which produces different partition layouts (number of storage nodes/size of each storage node), which produces different search quality/efficiency during a query
+
 
 # Deliverable C: Propose Better Repartitiong Scheme
 
@@ -96,5 +130,4 @@ However, the goal of this approach is to balance these costs with improved searc
 
 # Deliverable D: Extend Evaluation Beyond Sample Script
 
-TODO
-Basically already done becuase of the provided score_all_questions.py script. From Mitch: "We ended up giving that code to you so deliverable D is not all that relevant, but if you need to make modifications to the various evaluation scripts to achieve the other deliverables and/or the extra credit that is okay and likely necessary."
+The provided score_all_questions.py script already provides this behavior
