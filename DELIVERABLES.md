@@ -128,7 +128,28 @@ However, the goal of this approach is to balance these costs with improved searc
 
 # Deliverable D: Extend Evaluation Beyond Sample Script
 
-The provided score_all_questions.py script already provides this behavior
+The provided score_all_questions.py script already provides this behavior. However, additional unit tests were created in the `evaluation` directory to further confirm each units functionality. To run the tests, run `python unit_tests.py` from the `project2/evaluation` directory. Below are the expected outputs:
+
+```
+test_put_ok (__main__.TestController.test_put_ok) ... ok
+test_put_target_count_is_one_after_first_insert (__main__.TestController.test_put_target_count_is_one_after_first_insert) ... ok
+test_put_two_records_both_ok (__main__.TestController.test_put_two_records_both_ok) ... ok
+test_search_returns_correct_record_id (__main__.TestController.test_search_returns_correct_record_id) ... ok
+test_search_returns_hit_after_put (__main__.TestController.test_search_returns_hit_after_put) ... ok
+test_search_vectors_searched_is_nonzero (__main__.TestController.test_search_vectors_searched_is_nonzero) ... ok
+test_search_local_returns_stored_record (__main__.TestStorageNode.test_search_local_returns_stored_record) ... ok
+test_search_local_vectors_searched_equals_record_count (__main__.TestStorageNode.test_search_local_vectors_searched_equals_record_count) ... ok
+test_split_partition_counts_add_up (__main__.TestStorageNode.test_split_partition_counts_add_up) ... ok
+test_store_record_centroid_is_set (__main__.TestStorageNode.test_store_record_centroid_is_set) ... ok
+test_store_record_count_increments (__main__.TestStorageNode.test_store_record_count_increments) ... ok
+test_store_record_count_is_one (__main__.TestStorageNode.test_store_record_count_is_one) ... ok
+test_store_record_ok (__main__.TestStorageNode.test_store_record_ok) ... ok
+
+----------------------------------------------------------------------
+Ran 13 tests in 4.598s
+
+OK
+```
 
 # Additional Analysis
 
