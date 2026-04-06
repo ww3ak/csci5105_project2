@@ -61,8 +61,8 @@ These results match our expectations. A smaller repartition threshold means a sm
 
 | Ingestion File Used           | Storage node sizes    | Storage node mean scores  | Average vectors searched  | Average search fraction   | Average score accuracy    | Average hit rate  | Overall score |
 |-------------------------------|-----------------------|---------------------------|---------------------------|---------------------------|---------------------------|-------------------|---------------|
-| full_corpus_shuffled.jsonl    | 422, 282, 309, 302    | 0.481, 0.547, 0.531, 0.586| 476.72                    | 0.3625                    | 0.9748                    | 0.8100            | 3.0922        |
-| full_corpus_grouped.jsonl     | 591, 439, 285         | 0.494, 0.547, 0.506       | 589.11                    | 0.4480                    | 0.9866                    | 0.8815            | 2.5574        |
+| full_corpus_shuffled.jsonl    | 422, 282, 309, 302    | 0.481, 0.547, 0.531, 0.586| 315.49                    | 0.2399                    | 0.9469                    | 0.6520            | 4.0203        |
+| full_corpus_grouped.jsonl     | 591, 439, 285         | 0.494, 0.547, 0.506       | 436.23                    | 0.3317                    | 0.9592                    | 0.7475            | 3.0648        |
 
 ### Analysis
 
@@ -74,7 +74,7 @@ These results match our expectations. A smaller repartition threshold means a sm
   - Yes, the results demonstrate that the average number of vectors searched can change depending on the ingestion order
   - In this case, it changes by a large amount (difference of over 100) because the number of storage nodes partitioned is different betwene the trials
 - Question #3: Does the returned search quality change?
-  - Yes, the results demonstrate that both the average score accuracy ((Average returned score) / (Average oracle score)) and average hit rate changes depending on the ingestion order
+  - Yes, the results demonstrate that both the average score accuracy and average hit rate changes depending on the ingestion order
 - Question #4: Why do these differences happen?
   - Consider a system which has several storage nodes at some point midway through ingestion
   - The set of records ingested prior to this point (set A) entirely determined the early establishment of each node's centroid values, which affects all subsequent routing
@@ -137,8 +137,8 @@ The provided score_all_questions.py script already provides this behavior
 - Question #2: When are smaller partitions harmful?
   - As shown in Deliverable A, smaller partititions are NOT desired if a very high degree of search quality is required
 - Question #3: What measurements were most effected by insertion order?
-  - As shown in Deliverable B, insertion order did not have a considerable effect on search quality (0.9748 vs. 0.9866)
-  - However, it did have a very significant effect on the average number of vectors searched (476.72 vs. 589.11)
+  - As shown in Deliverable B, insertion order did not have a considerable effect on search quality (0.9469 vs. 0.9592)
+  - However, it did have a very significant effect on the average number of vectors searched (315.49 vs. 436.23)
   - These large differences in computational efficiency occur because different ingestion orders can effect the number of storage nodes created via repartitioning
 - Question #4: Is one-node search too restrictive for some queries?
   - Yes, one-node search is almost surely too restrictive for some queries

@@ -16,8 +16,8 @@ CONTROLLER_TARGET = os.environ.get("CONTROLLER_TARGET", "host.docker.internal:50
 
 # **** Uncomment one of the following lines to test different corpus ingestion orderings: ****
 
-# CORPUS_FILE = Path(os.environ["WORKSPACE_FOLDER"], "corpus", "full_corpus_shuffled.jsonl")
-CORPUS_FILE = Path(os.environ["WORKSPACE_FOLDER"], "corpus", "full_corpus_grouped.jsonl")
+CORPUS_FILE = Path(os.environ["WORKSPACE_FOLDER"], "corpus", "full_corpus_shuffled.jsonl")
+# CORPUS_FILE = Path(os.environ["WORKSPACE_FOLDER"], "corpus", "full_corpus_grouped.jsonl")
 
 
 def ingest_full_corpus(corpus_path: Path) -> int:
