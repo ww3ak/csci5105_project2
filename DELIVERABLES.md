@@ -131,3 +131,31 @@ However, the goal of this approach is to balance these costs with improved searc
 # Deliverable D: Extend Evaluation Beyond Sample Script
 
 The provided score_all_questions.py script already provides this behavior
+
+
+# Additional Analysis
+
+- Question #1: When are smaller partitions beneficial?
+    - As shown in Deliverable A, smaller partitions are desired if query speed is prioritized over search quality
+- Question #2: When are smaller partitions harmful?
+    - As shown in Deliverable A, smaller partititions are NOT desired if a very high degree of search quality is required
+- Question #3: What measurements were most effected by insertion order?
+    - As shown in Deliverable B, insertion order did not have a considerable effect on search quality (0.9748 vs. 0.9866)
+    - However, it did have a very significant effect on the average number of vectors searched (476.72 vs. 589.11)
+    - These large differences in computational efficiency occur because different ingestion orders can effect the number of storage nodes created via repartitioning
+- Question #4: Is one-node search too restrictive for some queries?
+    - Yes, one-node search is almost surely too restrictive for some queries
+    - As explained in the write-up, searching only a single storage node based on centroid similarity significantly improves query speed
+    - However, it reudces accuracy, as the chosen storage node may not contain all relevant vectors to the query
+    - Moreover, the one-node search approach sacrifices accuracy for speed
+- Question #5: Would searching two nodes instead of one be a good tradeoff?
+    - In cases where the repartitioning threshold is large, searching a second node is likely too computationally expensive to be a reasonable tradeoff    
+    - However, in cases where the repartitioning threshold is small, searching two nodes with the highest centroid similarity is a good tradeoff, as it will likely produce a higher search accuracy while searching a small number of additional vectors
+- Question #6: Does your alternative scheme improve quality, cost, or both?
+    - When evaluating across all 200 questions, the alternative repartitioning scheme:
+    - Increased search quality:
+        - Average score accuracy incrased from 0.9469 to 0.9748
+        - Average hit rate increased from 0.6520 to 0.8100
+    - Increased computational cost:
+        - Average vectors searched increased from 315.49 to 476.72
+        - Average search fraction increased from 0.2399 to 0.3625
